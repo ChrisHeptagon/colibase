@@ -22,8 +22,9 @@ pub async fn main_server() {
                 let body = res.text().await.expect("Failed to get response body from Dev Server").to_string();
                 let mut res = Response::new(body);
                 let mut headers = res.headers_mut();
+                let mut res_headers = HeaderMap::new();
                 for (key, value) in headers.iter_mut() {
-                    headers.insert(key, value.to_owned());
+                    res_headers.insert(key, value);
                 }
                 
                       }
