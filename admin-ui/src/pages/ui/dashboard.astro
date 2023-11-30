@@ -1,0 +1,164 @@
+---
+import StandardLayoutWithSidebar from "../../layouts/standardLayoutWithSidebar.astro";
+---
+
+<style>
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  input {
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  button {
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #a98484;
+  }
+</style>
+
+
+<script>
+
+  import {Chart } from "chart.js/auto"
+
+
+  function addData(chart: Chart, label: any, data: any[]) {
+    if (data.length > 10) {
+        data.shift();
+      }
+    if (!chart || !label || !data) {
+      console.log("missing data");
+      return;
+    }
+    if (!chart.data.labels || !chart.data.datasets) {
+      console.log("missing from chart");
+      return;
+    }
+    chart.data.labels.push(label);
+    chart.data.datasets.forEach((dataset: any) => {
+      if (!dataset.data) {
+        console.log("missing data from dataset");
+        return;
+      }
+      if (dataset.data.length > 10) {
+        dataset.data.shift();
+      }
+      dataset.data.push(data);
+    });
+    if (chart.data.labels.length > 10) {
+      chart.data.labels.shift();
+    }
+
+    chart.update();
+  }
+
+
+   
+
+
+
+  class StatGraph extends HTMLElement {
+    fetchInterval: number[] = []
+    ctx: HTMLCanvasElement;
+    dataStore: any[] = []
+    testChart: Chart
+    defaultIntervalFunc = async (seconds: number) => {
+      this.fetchInterval.push(window.setInterval(async () => {
+      const res = await fetch("/api/server-stats")
+        const json = await res.json()
+        const data = this.convertToHumanReadable(json.memory.total)
+        this.dataStore.push(data.value)
+        addData(this.testChart, new Date().toLocaleTimeString(), this.dataStore)
+      }, seconds))
+      if (this.fetchInterval.length > 1) {
+        const rogueTimer = this.fetchInterval.shift()
+        if (rogueTimer) {
+          clearInterval(rogueTimer)
+        }
+      }
+    }
+    defaultClearTimeout = () => {
+      setTimeout(() => {
+        for (let i = 0; i < this.fetchInterval.length; i++) {
+          clearInterval(this.fetchInterval[i])
+        }
+      }, 10000)
+      }
+     convertToHumanReadable(bytes: number) {
+      const i = Math.floor(Math.log(bytes) / Math.log(1024))
+      return {
+        value: parseFloat((bytes / Math.pow(1024, i)).toFixed(5)),
+        unit: ["Bytes", "KB", "MB", "GB", "TB"][i],
+      }
+    }
+    constructor() {
+      super()
+      this.attachShadow({mode: "open"})
+      this.ctx = document.createElement("canvas")
+      this.ctx.setAttribute("id", this.getAttribute("id") || "myChart")
+      this.ctx.style.outline = "3px solid #ccc"
+      this.shadowRoot?.appendChild(this.ctx)
+      this.testChart = new Chart(this.ctx, {
+        type: "line",
+        data: {
+          datasets: 
+              [{
+                label: "Memory: Total",
+                data: [...this.dataStore],
+              }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: false,            
+          },
+        },
+      },
+      })
+      const stopButton = document.createElement("button")
+      stopButton.innerText = "Stop"
+      this.shadowRoot?.appendChild(stopButton)
+      stopButton.addEventListener("click", () => {
+        for (let i = 0; i < this.fetchInterval.length; i++) {
+          clearInterval(this.fetchInterval[i])
+        }
+      })
+    }
+    connectedCallback() {
+      console.log("Hello")
+        this.defaultIntervalFunc(1000)
+      this.ctx.addEventListener("mouseenter", () => {
+        this.defaultIntervalFunc(1000)
+      })
+      this.ctx.addEventListener("mouseleave", () => {
+        this.defaultClearTimeout()
+      })
+    }
+    disconnectedCallback() {
+      for (let i = 0; i < this.fetchInterval.length; i++) {
+        clearInterval(this.fetchInterval[i])
+      }
+    }
+
+  }
+  customElements.define("stat-graph", StatGraph)
+</script>
+
+<StandardLayoutWithSidebar title="Dashboard">
+  <h1>Dashboard</h1>
+  <stat-graph
+    id="memtotal"
+  ></stat-graph>
+</StandardLayoutWithSidebar>
