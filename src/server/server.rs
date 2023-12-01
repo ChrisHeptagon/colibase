@@ -30,9 +30,7 @@ pub async fn main_server(addr: SocketAddr) {
                             .uri()
                             .path()
                         {
-                            "api" => api_handler(req).await,
-                            "ui" => frontend_ssr_handler(req).await,
-                            "entry" => frontend_ssr_handler(req).await,
+                            "/api/login-schema" => login_schema(req).await,
                             _ => frontend_ssr_handler(req).await,
                         }
                     }),
@@ -43,6 +41,21 @@ pub async fn main_server(addr: SocketAddr) {
             }
         });
     }
+}
+
+async fn login_schema(
+    _: Request<Incoming>,
+) -> Result<Response<BoxBody<Bytes, hyper::Error>>, hyper::Error> {
+    Ok(Response::builder()
+        .status(200)
+        .body(
+            Full::new(
+                
+            )
+            .map_err(|e| match e {})
+            .boxed(),
+        )
+        .expect("Failed to build response"))
 }
 
 async fn api_handler(
@@ -112,10 +125,39 @@ async fn dev_server_handler(
 }
 
 async fn prod_server_handler(
-    req: Request<Incoming>,
+    main_req: Request<Incoming>,
 ) -> Result<Response<BoxBody<Bytes, hyper::Error>>, hyper::Error> {
-    Ok(Response::new(req.boxed()))
+    let dev_server_url = format!(
+        "http://localhost:{}{}",
+        env::var("PROD_PORT").expect("Failed to get PROD port"),
+        main_req.uri().path()
+    );
+    let url = dev_server_url
+        .parse::<hyper::Uri>()
+        .expect("Failed to parse prod server url");
+    let host = url.host().expect("uri has no host");
+    let port = url.port_u16().unwrap_or(80);
+    let stream = TcpStream::connect((host, port)).await
+        .expect("Failed to connect to prod server");
+    let io = TokioIo::new(stream);
+    let (mut sender, conn) = Builder::new()
+        .preserve_header_case(true)
+        .title_case_headers(true)
+        .handshake(io)
+        .await
+        .expect("Failed to handshake with prod server");
+    tokio::task::spawn(async move {
+        if let Err(err) = conn.await {
+            println!("Error serving connection: {:?}", err);
+        }
+    });
+    let resp = sender
+        .send_request(main_req)
+        .await
+        .expect("Failed to send request to prod server");
+    Ok(resp.map(|body| body.boxed()))
 }
+
 
 async fn no_mode_handler(
     _: Request<Incoming>,
