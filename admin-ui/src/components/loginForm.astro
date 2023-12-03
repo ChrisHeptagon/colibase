@@ -103,21 +103,28 @@ if (formsadf) {
       <img class="logo" src={ColibaseLogo.src} alt="logo" />
       <fieldset>
         <legend>Enter your credentials</legend>
-        {UserSchema.map((field: any) =>
-        <label for={field.name}>{field.name}</label>
-            <input
-              type={field.form_type ?? field.name ?? "text"}
-              name={field.name}
-              id={field.name}
-              required={field.required ?? "false"}
-              autocomplete="on"
-              aria-required={field.required ?? "false"}
-              aria-label={field.name}
-              aria-describedby={`${field.name}-error`}
-              pattern={field.pattern ?? "[\\s\\S]"}
-            />
-            <span id={`${field.name}-error`} class="form-error"></span>
-        )}
+        {
+            typeof UserSchema === "object" &&
+            Object.keys(UserSchema).map((key: string) => {
+                const field = UserSchema[key];
+                return (
+                    <label for={key}>{key}</label>
+                    <input
+                      type={field.form_type ?? field.name ?? "text"}
+                      name={key}
+                      id={key}
+                      required={field.required ?? "false"}
+                      autocomplete="on"
+                      aria-required={field.required ?? "false"}
+                      aria-label={key}
+                      aria-describedby={`${key}-error`}
+                      pattern={field.pattern ?? "[\\s\\S]"}
+                    />
+                    <span id={`${key}-error`} class="form-error"></span>
+                )
+            })
+        }
+                            <!-- <input name="frbferwrewr" type="text" /> -->
           <p class="error-item" id="error-item">
           </p>
       </fieldset>

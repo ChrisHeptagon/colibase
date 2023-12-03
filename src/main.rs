@@ -4,6 +4,9 @@ use dotenvy::dotenv;
 use server::server::main_server;
 use std::{env, net::SocketAddr};
 
+
+
+
 #[tokio::main]
 async fn main() {
     dotenv().expect("Failed to read .env file");
