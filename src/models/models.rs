@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, borrow::BorrowMut};
 
 use deadpool_sqlite::{Config, Object, Runtime};
+use regex::Regex;
 use rusqlite::ToSql;
 use serde::{Deserialize, Serialize};
 
@@ -55,6 +56,22 @@ impl DefaultUserSchema {
         );
         return schema;
     }
+}
+
+pub async fn query_admin_table(form_data: HashMap<String, String>) {
+    let mut keys = form_data.clone();
+    let mut keys = &mut keys.borrow_mut().keys();
+    for key in keys {
+        if Regex::new(r"(?i)password").expect("Failed to compile regex").is_match(key) {
+            form_data.remove_entry(key);
+        }
+    }
+    let fir_qry = format!("SELECT * FROM users LIMIT 1 WHERE {}", form_data.keys().map(|x| format!("{} = ?", x)).collect::<Vec<String>>().join(" AND "));
+    println!("{}", fir_qry);
+//     get_connection().await.interact(|conn| {
+//         let fir_ret = conn.prepare(&fir_qry).expect("Failed to prepare query");
+//     }
+// ).await.expect("Failed to query table");
 }
 
 pub async fn insert_form_data(data: HashMap<String, String>) {
