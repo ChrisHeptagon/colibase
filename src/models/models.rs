@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use deadpool_sqlite::{Config, Object, Runtime};
+use rusqlite::ToSql;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
@@ -57,7 +58,7 @@ impl DefaultUserSchema {
 }
 
 pub async fn insert_form_data(data: HashMap<String, String>) {
-    get_connection().await.interact(|conn| {     
+    match get_connection().await.interact(|conn| {     
     let mut columns_map: HashMap<String, String> = HashMap::new();
     for (key, value) in data {
         columns_map.insert(key, value);
@@ -71,26 +72,40 @@ pub async fn insert_form_data(data: HashMap<String, String>) {
             .join(", "),
         columns_map
             .values()
-            .map(|x| x.to_string())
+            .map(|_x| "?".to_string())
             .collect::<Vec<String>>()
             .join(", ")
     );
+    println!("{}", final_query);
     let mut fir_ret = conn.prepare(&final_query).expect("Failed to prepare query");
+    let sec_ret_params: Vec<&dyn ToSql> = columns_map
+        .values()
+        .map(|x| x as &dyn ToSql)
+        .collect();
     let sec_ret = fir_ret
-        .execute([])
-        .expect("Failed to execute query");
-    if sec_ret > 0 {
-        println!("Inserted data");
-    } else {
-        println!("Failed to insert data");
+        .execute(sec_ret_params.as_slice());
+        match sec_ret {
+            Ok(_) => {
+                println!("Inserted data");
+            }
+            Err(_) => {
+                println!("Failed to insert data");
+            }
+        }
+}).await
+    {
+        Ok(_) => {
+            println!("Finished");
+        }
+        Err(_) => {
+            println!("Failed to insert data");
+        }
     }
-
-}).await.expect("Failed to insert data");
 }
 
 pub async fn gen_admin_table() {
     let schema = gen_admin_schema().await;
-    get_connection()
+    match get_connection()
         .await
         .interact(move |conn| {
     let fir_ret = conn.prepare("SELECT * FROM users LIMIT 1;");
@@ -134,7 +149,14 @@ pub async fn gen_admin_table() {
             }
         }
     }
-}).await.expect("Failed to create table");
+}).await {
+        Ok(_) => {
+            println!("Created table");
+        }
+        Err(_) => {
+            println!("Failed to create table");
+        }
+    }
 }
 
 
