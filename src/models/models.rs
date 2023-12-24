@@ -1,4 +1,4 @@
-use std::{collections::HashMap, borrow::BorrowMut};
+use std::collections::HashMap;
 
 use deadpool_sqlite::{Config, Object, Runtime};
 use regex::Regex;
@@ -58,9 +58,9 @@ impl DefaultUserSchema {
     }
 }
 
-pub async fn query_admin_table(form_data: HashMap<String, String>) {
-    let mut local_form_data = form_data.clone();
-    let mut keys = &mut local_form_data.clone().keys().map(|x| x.to_string()).collect::<Vec<String>>();
+pub async fn query_admin_table(mut form_data: HashMap<String, String>) {
+    let  local_form_data = form_data.clone();
+    let  keys = &mut local_form_data.clone().keys().map(|x| x.to_string()).collect::<Vec<String>>();
     let keys = keys;
     for key in keys {
         if Regex::new(r"(?i)password").expect("Failed to compile regex").is_match(key) {
