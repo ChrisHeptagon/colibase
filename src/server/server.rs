@@ -14,12 +14,21 @@ use std::sync::Arc;
 use tokio::{net::TcpStream, sync::Mutex};
 use tokio_tungstenite::connect_async;
 
+use crate::models::models::gen_admin_schema;
+
 pub async fn main_server() {
   let addr = "0.0.0.0:3006";
   let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+  let frontend_routes = Router::new()
+    .route("/dashboard", get(frontend_ssr_handler))
+    .route("/login", get(frontend_ssr_handler))
+    .route("/register", get(frontend_ssr_handler));
+  let dev_routes = Router::new().route("/_next/*wildcard", get(frontend_ssr_handler));
+  let api_routes = Router::new().route("/api/login_schema", get(login_schema_handler));
   let app = Router::new()
-    .route("/", get(frontend_ssr_handler))
-    .route("/*wildcard", get(frontend_ssr_handler));
+    .merge(frontend_routes)
+    .merge(api_routes)
+    .merge(dev_routes);
   println!("Listening on http://{}", addr);
   axum::serve(listener, app).await.unwrap();
 }
@@ -116,5 +125,12 @@ async fn no_mode_handler(_: Request<Body>) -> impl IntoResponse {
   Response::builder()
     .status(hyper::StatusCode::NOT_FOUND)
     .body(Body::from("No mode set"))
+    .expect("Failed to build response")
+}
+
+async fn login_schema_handler(_: Request<Body>) -> impl IntoResponse {
+  Response::builder()
+    .status(hyper::StatusCode::OK)
+    .body(Body::from(gen_admin_schema().await))
     .expect("Failed to build response")
 }

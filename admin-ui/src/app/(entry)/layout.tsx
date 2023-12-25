@@ -1,7 +1,11 @@
+import './entry.scss';
+
 export default function Layout({ children }: { children: React.ReactNode }) {
     return (
-        <main>
+        <>
+        <main id="background">
         {children}
         </main>
+        </>
     )
     }
