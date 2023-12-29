@@ -23,7 +23,13 @@ pub async fn main_server() {
     .route("/dashboard", get(frontend_ssr_handler))
     .route("/login", get(frontend_ssr_handler))
     .route("/register", get(frontend_ssr_handler));
-  let dev_routes = Router::new().route("/_next/*wildcard", get(frontend_ssr_handler));
+  let dev_routes = Router::new()
+    .route("/@fs/*wildcard", get(frontend_ssr_handler))
+    .route("/@vite/*wildcard", get(frontend_ssr_handler))
+    .route("/node_modules/*wildcard", get(frontend_ssr_handler))
+    .route("/.svelte-kit/*wildcard", get(frontend_ssr_handler))
+    .route("/@id/*wildcard", get(frontend_ssr_handler))
+    .route("/src/*wildcard", get(frontend_ssr_handler));
   let api_routes = Router::new().route("/api/login_schema", get(login_schema_handler));
   let app = Router::new()
     .merge(frontend_routes)
