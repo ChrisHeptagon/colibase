@@ -1,12 +1,13 @@
 use axum::{
   body::Body,
-  extract::Request,
+  extract::{Multipart, Request},
+  middleware::{self, Next},
   response::{IntoResponse, Response},
-  routing::get,
+  routing::{get, post},
   Router,
 };
 use futures::{SinkExt, StreamExt};
-use hyper::client::conn::http1::Builder;
+use hyper::{client::conn::http1::Builder, HeaderMap, StatusCode};
 use hyper_tungstenite::HyperWebsocket;
 use hyper_util::rt::TokioIo;
 use std::env;
@@ -19,10 +20,11 @@ use crate::models::models::gen_admin_schema;
 pub async fn main_server() {
   let addr = "0.0.0.0:3006";
   let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-  let frontend_routes = Router::new()
-    .route("/dashboard", get(frontend_ssr_handler))
+  let entry_routes = Router::new()
     .route("/login", get(frontend_ssr_handler))
+    // .route_layer(middleware::from_fn(entry_auth_middleware))
     .route("/register", get(frontend_ssr_handler));
+  let frontend_routes = Router::new().route("/dashboard", get(frontend_ssr_handler));
   let dev_routes = Router::new()
     .route("/@fs/*wildcard", get(frontend_ssr_handler))
     .route("/@vite/*wildcard", get(frontend_ssr_handler))
@@ -30,14 +32,25 @@ pub async fn main_server() {
     .route("/.svelte-kit/*wildcard", get(frontend_ssr_handler))
     .route("/@id/*wildcard", get(frontend_ssr_handler))
     .route("/src/*wildcard", get(frontend_ssr_handler));
-  let api_routes = Router::new().route("/api/login_schema", get(login_schema_handler));
+  let api_routes = Router::new()
+    .route("/api/login_schema", get(login_schema_handler))
+    .route("/api/login", post(user_login_handler))
+    .route("/api/register", post(user_register_handler));
   let app = Router::new()
     .merge(frontend_routes)
     .merge(api_routes)
-    .merge(dev_routes);
+    .merge(dev_routes)
+    .merge(entry_routes);
   println!("Listening on http://{}", addr);
   axum::serve(listener, app).await.unwrap();
 }
+
+// async fn entry_auth_middleware(headers: HeaderMap, request: Request, next: Next) -> Response {
+//   Response::builder()
+//     .status(StatusCode::UNAUTHORIZED)
+//     .body(Body::from("Unauthorized"))
+//     .unwrap()
+// }
 
 async fn frontend_ssr_handler(request: Request<Body>) -> impl IntoResponse {
   let dev_port = env::var("DEV_PORT")
@@ -139,4 +152,20 @@ async fn login_schema_handler(_: Request<Body>) -> impl IntoResponse {
     .status(hyper::StatusCode::OK)
     .body(Body::from(gen_admin_schema().await))
     .expect("Failed to build response")
+}
+
+async fn user_login_handler(mut mulitpart: Multipart) {
+  while let Some(field) = mulitpart.next_field().await.unwrap() {
+    let name = field.name().unwrap().to_string();
+    let value = field.text().await.unwrap();
+    println!("{}: {}", name, value);
+  }
+}
+
+async fn user_register_handler(mut mulitpart: Multipart) {
+  while let Some(field) = mulitpart.next_field().await.unwrap() {
+    let name = field.name().unwrap().to_string();
+    let value = field.text().await.unwrap();
+    println!("{}: {}", name, value);
+  }
 }
