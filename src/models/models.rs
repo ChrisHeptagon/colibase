@@ -69,10 +69,11 @@ pub async fn query_admin_table(mut form_data: HashMap<String, String>) {
     }
     let fir_qry = format!("SELECT * FROM users LIMIT 1 WHERE {}", form_data.keys().map(|x| format!("{} = ?", x)).collect::<Vec<String>>().join(" AND "));
     println!("{}", fir_qry);
-//     get_connection().await.interact(|conn| {
-//         let fir_ret = conn.prepare(&fir_qry).expect("Failed to prepare query");
-//     }
-// ).await.expect("Failed to query table");
+    get_connection().await.interact(move |conn| {
+        let mut fir_ret = conn.prepare(&fir_qry).expect("Failed to prepare query");
+        let sec_ret = fir_ret.query(form_data.values().map(|x| x as &dyn ToSql).collect::<Vec<&dyn ToSql>>().as_slice()).expect("Failed to query table");
+    }
+).await.expect("Failed to query table");
 }
 
 pub async fn insert_form_data(data: HashMap<String, String>) {

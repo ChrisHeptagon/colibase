@@ -10,12 +10,12 @@ use futures::{SinkExt, StreamExt};
 use hyper::{client::conn::http1::Builder, HeaderMap, StatusCode};
 use hyper_tungstenite::HyperWebsocket;
 use hyper_util::rt::TokioIo;
-use std::env;
 use std::sync::Arc;
+use std::{collections::HashMap, env};
 use tokio::{net::TcpStream, sync::Mutex};
 use tokio_tungstenite::connect_async;
 
-use crate::models::models::gen_admin_schema;
+use crate::models::models::{self, gen_admin_schema, gen_admin_table};
 
 pub async fn main_server() {
   let addr = "0.0.0.0:3006";
@@ -155,17 +155,26 @@ async fn login_schema_handler(_: Request<Body>) -> impl IntoResponse {
 }
 
 async fn user_login_handler(mut mulitpart: Multipart) {
+  let mut login_map = HashMap::new();
   while let Some(field) = mulitpart.next_field().await.unwrap() {
     let name = field.name().unwrap().to_string();
     let value = field.text().await.unwrap();
     println!("{}: {}", name, value);
+    login_map.insert(name, value);
   }
+  println!("{:?}", login_map);
+  models::query_admin_table(login_map).await;
 }
 
 async fn user_register_handler(mut mulitpart: Multipart) {
+  gen_admin_table().await;
+  let mut register_map = HashMap::new();
   while let Some(field) = mulitpart.next_field().await.unwrap() {
     let name = field.name().unwrap().to_string();
     let value = field.text().await.unwrap();
     println!("{}: {}", name, value);
+    register_map.insert(name, value);
   }
+  println!("{:?}", register_map);
+  models::insert_form_data(register_map).await;
 }

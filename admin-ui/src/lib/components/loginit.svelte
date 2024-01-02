@@ -17,9 +17,9 @@
             {key}
           </label>
           <input type={schema[key].form_type} 
-          id={key} 
-          name={key} 
-          pattern={schema[key].pattern} 
+          id={key}
+          name={key}
+          pattern={schema[key].pattern}
           required={schema[key].required}
           />
         {/each}
@@ -31,6 +31,7 @@
 
 <style lang="scss">
   section.entry_form {
+    box-shadow: #ccc 0px 0px 10px 0px;
     width: 500px;
     display: flex;
     flex-direction: column;
@@ -39,6 +40,7 @@
     background-color: #fff;
     padding: 2rem;
     border-radius: 1rem;
+    text-shadow: #ccc 0px 0px 10px 0px;
     h1 {
       font-size: 2rem;
       margin-bottom: 1rem;
@@ -60,7 +62,7 @@
         border-radius: 0.5rem;
       }
       button {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         padding: 0.5rem;
         margin-bottom: 1rem;
         border: 1px solid #ccc;
