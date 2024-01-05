@@ -163,7 +163,7 @@ async fn user_login_handler(mut mulitpart: Multipart) {
     login_map.insert(name, value);
   }
   println!("{:?}", login_map);
-  models::query_admin_table(login_map).await;
+  models::entry_query_admin_table(login_map).await;
 }
 
 async fn user_register_handler(mut mulitpart: Multipart) {
@@ -176,5 +176,5 @@ async fn user_register_handler(mut mulitpart: Multipart) {
     register_map.insert(name, value);
   }
   println!("{:?}", register_map);
-  models::insert_form_data(register_map).await;
+  models::insert_entry_form_data(register_map).await;
 }

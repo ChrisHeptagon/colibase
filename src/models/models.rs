@@ -58,7 +58,7 @@ impl DefaultUserSchema {
     }
 }
 
-pub async fn query_admin_table(mut form_data: HashMap<String, String>) {
+pub async fn entry_query_admin_table(mut form_data: HashMap<String, String>) {
     let  local_form_data = form_data.clone();
     let  keys = &mut local_form_data.clone().keys().map(|x| x.to_string()).collect::<Vec<String>>();
     let keys = keys;
@@ -71,12 +71,23 @@ pub async fn query_admin_table(mut form_data: HashMap<String, String>) {
     println!("{}", fir_qry);
     get_connection().await.interact(move |conn| {
         let mut fir_ret = conn.prepare(&fir_qry).expect("Failed to prepare query");
-        let sec_ret = fir_ret.query(form_data.values().map(|x| x as &dyn ToSql).collect::<Vec<&dyn ToSql>>().as_slice()).expect("Failed to query table");
+        let sec_ret = match fir_ret.query(form_data.values().map(|x| x as &dyn ToSql).collect::<Vec<&dyn ToSql>>().as_slice()) {
+            Ok(_) => {
+                println!("Found user");
+                return true;
+            }
+            Err(_) => {
+                println!("Failed to find user");
+                return false;
+            }
+        };
     }
+
+    
 ).await.expect("Failed to query table");
 }
 
-pub async fn insert_form_data(data: HashMap<String, String>) {
+pub async fn insert_entry_form_data(data: HashMap<String, String>) {
     match get_connection().await.interact(|conn| {     
     let mut columns_map: HashMap<String, String> = HashMap::new();
     for (key, value) in data {
