@@ -33,6 +33,7 @@
   section.entry_form {
     box-shadow: #ccc 0px 0px 10px 0px;
     width: 500px;
+    height: 80%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -63,6 +64,7 @@
       }
       button {
         font-size: 1.25rem;
+        font-family: inherit;
         padding: 0.5rem;
         margin-bottom: 1rem;
         border: 1px solid #ccc;
