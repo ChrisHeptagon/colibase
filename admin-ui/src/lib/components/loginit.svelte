@@ -5,11 +5,28 @@
     let formKeys = Object.keys(schema).sort((a, b) =>
       schema[a].order > schema[b].order ? 1 : -1
     );
+    import cbaselogo from "$lib/img/cbaselogo.svg";
 </script>
 
 <section class="entry_form">
+  <h1>
+    {#if type === "login"}
+    Welcome Back! <br> Login to access Colibase.
+    {/if}
+    {#if type === "register"}
+    New here? <br> Welcome to Colibase! <br> Create an account to get started.
+    {/if}
+    </h1>
+
+  <img alt="Colibase Logo" src={cbaselogo} />
+
       <h1>
-        {title}
+        {#if type === "login"}
+          Login
+        {/if}
+        {#if type === "register"}
+          Initalize Account
+        {/if}
       </h1>
       <form method="POST" novalidate action={`/api/${type}`} enctype="multipart/form-data">
         {#each formKeys as key}
@@ -19,7 +36,7 @@
           <input type={schema[key].form_type} 
           id={key}
           name={key}
-          pattern={schema[key].pattern}
+          pattern={schema[key].pattern}NNNN
           required={schema[key].required}
           />
         {/each}
@@ -30,41 +47,43 @@
     </section>
 
 <style lang="scss">
+
+
+
   section.entry_form {
     box-shadow: #ccc 0px 0px 10px 0px;
     width: 500px;
-    height: 80%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #fff;
-    padding: 2rem;
-    border-radius: 1rem;
-    text-shadow: #ccc 0px 0px 10px 0px;
+    background-color: #ffffff;
+    min-width: 500px;
+    padding: 40px;
+    img {
+      grid-area: logo;
+      width: 150px;
+      filter: drop-shadow(-4px 6px 4px #000);
+    }
     h1 {
+      text-align: center;
       font-size: 2rem;
-      margin-bottom: 1rem;
     }
     form {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      width: 100%;
       label {
-        font-size: 1rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+        display: block;
       }
       input {
-        font-size: 1rem;
-        padding: 0.5rem;
-        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 15px;
         border: 1px solid #ccc;
-        border-radius: 0.5rem;
       }
       button {
         font-size: 1.25rem;
-        font-family: inherit;
         padding: 0.5rem;
         margin-bottom: 1rem;
         border: 1px solid #ccc;
@@ -76,4 +95,4 @@
     }
   }
   
-</style>
+</style>                              

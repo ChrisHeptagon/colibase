@@ -16,5 +16,10 @@
     justify-content: center;
 	background-image: linear-gradient(to right, #ffffff 0%, #bbb9b1 100%);
   font-family: "Urbanist", sans-serif;
+  display: grid;
+  grid-template-areas: "sidebar input";
+  grid-template-columns: 500px 1fr;
+  grid-template-rows: 1fr;
+  font-family: "rem";
   }
 </style>
