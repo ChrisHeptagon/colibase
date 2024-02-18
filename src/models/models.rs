@@ -42,7 +42,7 @@ impl DefaultUserSchema {
                 form_type: HTMLFieldType::Password,
                 required: true,
                 pattern: "^[^\\s]+$".to_string(),
-                order: 2,
+                order: 3,
             },
         );
         schema.insert(
@@ -51,7 +51,7 @@ impl DefaultUserSchema {
                 form_type: HTMLFieldType::Text,
                 required: true,
                 pattern: "^[a-zA-Z0-9]+$".to_string(),
-                order: 3,
+                order: 2,
             },
         );
         return schema;

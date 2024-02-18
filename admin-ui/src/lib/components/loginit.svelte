@@ -47,17 +47,16 @@
     </section>
 
 <style lang="scss">
-
-
-
   section.entry_form {
+    grid-area: input;
     box-shadow: #ccc 0px 0px 10px 0px;
-    width: 500px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #ffffff;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.5s;
     min-width: 500px;
     padding: 40px;
     img {
@@ -79,17 +78,20 @@
         font-size: 1.5rem;
         margin: 10px 0;
         padding: 10px;
-        border-radius: 15px;
+        border-radius: 10px;
         border: 1px solid #ccc;
       }
       button {
+        font-family: "rem";
+        display: block;
+        width: 100%;
         font-size: 1.25rem;
         padding: 0.5rem;
         margin-bottom: 1rem;
         border: 1px solid #ccc;
-        border-radius: 0.5rem;
-        background-color: #09b372;
-        color: #fff;
+        border-radius: 10px;
+        background-image: linear-gradient(45deg, hsl(93, 88%, 55%) 0%, hsl(93, 88%, 45%) 100%);
+        color: #0b0d41;
         cursor: pointer;
       }
     }
