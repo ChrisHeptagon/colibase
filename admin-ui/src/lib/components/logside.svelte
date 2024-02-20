@@ -1,9 +1,10 @@
 <script lang="ts">
   import Darkmode from "./darkmode.svelte";
-
+ 
 </script>
 
 <aside>
+
 <Darkmode />
 </aside>
 
